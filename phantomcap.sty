@@ -1,0 +1,41 @@
+% Author: Jude Alnas
+% Email: jalnas@crimson.ua.edu
+% Date: April 20, 2022
+%
+% The motivation for this package was the incompatibility of the subcaption package with 
+% REVTEX 4 and thus the unavailability of the \phantomsubcaption command. This package 
+% implements the workaround found at https://tex.stackexchange.com/a/557032/268813, 
+% slightly modified to accommodate defining several phantom subcaptions in one command.
+%
+% This package provides one command, \phantomsubfloat, and its syntax is
+%   \phantomsubfloat{#1}
+% where #1 can be the command \label{my:label}. Any number of arguments can be appended, like so
+%   \phantomsubfloat{\label{my:label1}}{\label{my:label2}}...{\label{my:labelN}}
+%
+% Hypothetically the \label{} commands can be replaced with something else, e.g. graphics, but 
+% I do not know what will happen in this case.
+
+\ProvidesPackage{phantomcap}
+
+% Use the subfig package but set the caption option to false for compatibility with REVTEX 4
+\RequirePackage[caption=false]{subfig}
+
+% Keep the parentheses like in \subref but allow to use cleveref
+\captionsetup[subfigure]{subrefformat=simple,labelformat=simple,listofformat=subsimple}
+\renewcommand\thesubfigure{(\alph{subfigure})}
+
+% Allows referencing phantom subfigures, i.e. when (a), (b) are part of an
+% image itself. Must be followed by \vspace{-2\baselineskip}
+\makeatletter
+\providecommand{\phantomsubfloat}[1]{
+    {% apply caption setup only temporarily
+        \captionsetup[subfigure]{labelformat=empty}
+        \subfloat[][]{#1}
+    }%
+
+    % If next token is open curly bracket '{', repeat phantomsubfloat command.
+    % Otherwise, remove the extra space created by \subfloat.
+    % TO-DO: Parameterize the amount of space added/removed after a \phantomsubfloat command
+    \@ifnextchar\bgroup{\phantomsubfloat}{\vspace{-2\baselineskip}}
+}
+\makeatother    
